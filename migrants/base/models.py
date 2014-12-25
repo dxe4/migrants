@@ -13,7 +13,7 @@ class DataCategory(models.Model):
 
 class Country(models.Model):
     id = models.IntegerField(primary_key=True)
-    alpha2 = models.CharField(max_length=2, unique=True, index=True)
+    alpha2 = models.CharField(max_length=2, unique=True, db_index=True)
     area = models.CharField(max_length=200)
     alt_name = models.CharField(max_length=200)
     name = models.CharField(max_length=200)

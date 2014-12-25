@@ -3,7 +3,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "migrants.settings")
 import django
 django.setup()
 
-from fabric.api import task
+from invoke import task
 from openpyxl import load_workbook
 from openpyxl.cell import get_column_letter
 import pycountry
@@ -149,3 +149,10 @@ def import_data():
     countries = _db_countries_by_name()
     for category in DataCategory.objects.all():
         import_category(category, countries)
+
+
+@task
+def import_all():
+    import_countries()
+    import_categories()
+    import_data()
