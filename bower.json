@@ -1,0 +1,20 @@
+{
+  "name": "migrants",
+  "version": "0.0.0",
+  "homepage": "https://github.com/papaloizouc/migrants",
+  "authors": [
+    "Charalampos Papaloizou <papaloizouc@gmail.com>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angularjs": "~1.3.8"
+  }
+}

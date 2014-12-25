@@ -59,3 +59,5 @@ venv/
 migrants/static
 nodejs/
 static/
+bower_components
+
