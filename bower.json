@@ -21,6 +21,8 @@
     "angularjs": {
       "js": "angular.min.js"
     }
+  },
+  "devDependencies": {
+    "angular-resource": "~1.3.8"
   }
-
 }
