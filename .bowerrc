@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "postinstall": "./bower_postinstall.sh"
+  }
+}
+
