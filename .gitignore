@@ -57,4 +57,5 @@ target/
 *.xls
 venv/
 migrants/static
-
+nodejs/
+static/
