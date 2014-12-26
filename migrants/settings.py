@@ -79,9 +79,9 @@ DATABASES = {
     }
 }
 
-COMPRESS_PRECOMPILERS = (
-    ('text/coffeescript', 'coffee --compile --stdio'),
-)
+# COMPRESS_PRECOMPILERS = (
+#     ('text/coffeescript', 'coffee --compile --stdio'),
+# )
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

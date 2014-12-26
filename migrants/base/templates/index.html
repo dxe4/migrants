@@ -7,9 +7,7 @@
 
         <script src="{% static 'lib/angular.min.js' %}"></script>
         <script src="{% static 'lib/angular-resource.min.js' %}"></script>
-        {% compress js %}
-        <script type="text/coffeescript" charset="utf-8" src="{% static 'main.coffee' %}"></script>
-        {% endcompress %}
+        <script src="{% static 'js/script.js' %}"></script>
     </head>
     <body ng-app="{% block ng_app %}migrants.main{% endblock %}">
         <div class="content" ng-controller="{% block ng_controller %}MainCtrl{% endblock %}">
