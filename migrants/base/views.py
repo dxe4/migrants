@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.views.generic.base import TemplateView
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -29,3 +30,8 @@ class OriginView(BaseCountryView):
 class DestinationView(BaseCountryView):
     join_fields = 'destination'
     serializer = DestinationCountrySerializer
+
+
+class Index(TemplateView):
+    template_name = 'index.html'
+    http_method_names = ['get']

@@ -3,8 +3,8 @@ module.exports = (grunt) ->
         pkg: grunt.file.readJSON('package.json')
         coffee:
             files:
-                src: ['migrants/**/*.coffee']
-                dest: 'static/js/script.js'
+                src: ['../migrants/**/*.coffee']
+                dest: '../static/js/script.js'
     )
     
     grunt.loadNpmTasks('grunt-contrib-coffee')

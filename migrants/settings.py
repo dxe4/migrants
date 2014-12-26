@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
+here = lambda *x: os.path.realpath(os.path.join(BASE_DIR, *x))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'migrants.base',
     'rest_framework',
+    'compressor',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -51,7 +52,12 @@ MIDDLEWARE_CLASSES = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
 )
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "migrants/base/js"),
+]
 
 ROOT_URLCONF = 'migrants.urls'
 
@@ -72,6 +78,10 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', ''),
     }
 }
+
+COMPRESS_PRECOMPILERS = (
+    ('text/coffeescript', 'coffee --compile --stdio'),
+)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
