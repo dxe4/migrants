@@ -4,26 +4,21 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" href="{% static "bootstrap/dist/css/bootstrap.css" %}">
-
         <script src="{% static 'lib/angular.min.js' %}"></script>
         <script src="{% static 'lib/angular-resource.min.js' %}"></script>
-
         <script src="{% static 'lib/topojson.js' %}"></script>
         <script src="{% static 'lib/d3.js' %}"></script>
         <script src="{% static 'lib/datamaps.world.min.js' %}"></script>
-
+        <script src="{% static 'lib/underscore-min.js' %}"></script>
         <script src="{% static 'js/script.js' %}"></script>
     </head>
     <body ng-app="{% block ng_app %}migrants.main{% endblock %}">
         <div class="content" ng-controller="{% block ng_controller %}MainCtrl{% endblock %}">
             {% block content %}
             {% verbatim %}
-                <div class="panel" ng-repeat="spam in spam">
-                    <h1> {{spam}} </h1>
-                </div>
+                <div id='container' style="position: relative; margin: 0; width: {{x}}px; height: {{y}}px; display: block;"> </div>
             {% endverbatim %}
             {% endblock %}
         </div>
-        <div id='container' style="position: relative; width: 500px; height: 300px;"> </div>
     </body>
 </html>
