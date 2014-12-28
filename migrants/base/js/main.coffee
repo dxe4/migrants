@@ -14,7 +14,7 @@ screenSize = () ->
 class WorldMap
     constructor: ->
         @zoom = d3.behavior.zoom()
-            .scaleExtent([1, 9])
+            .scaleExtent([0.72, 10])
             .on("zoom", @move)
 
         @container = document.getElementById('container')
@@ -42,7 +42,7 @@ class WorldMap
 
             @g = @svg.append("g")
 
-            country = @g.selectAll(".country").data(countries);
+            country = @g.selectAll(".country").data(countries)
 
             country.enter().insert("path")
                 .attr("class", "country")
@@ -104,7 +104,6 @@ class WorldMap
         @zoom.translate(t);
         @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
 
-        d3.selectAll(".country").style("stroke-width", 1.5 / s)
 
 
 app.controller 'MainCtrl', ['$scope', '$http', ($scope, $http) ->
