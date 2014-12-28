@@ -8,30 +8,111 @@ screenSize = () ->
     y = window.innerHeight|| docElm.clientHeight|| body.clientHeight
     return [x, y]
 
+[width, height] = (Math.round(item - item * 10 / 100)for item in screenSize())
+
+
+class WorldMap
+    constructor: ->
+        @zoom = d3.behavior.zoom()
+            .scaleExtent([1, 9])
+            .on("zoom", @move)
+
+        @container = document.getElementById('container')
+        @setup width, height
+        @draw()
+
+    setup: (x, y) ->
+        @projection = d3.geo.mercator()
+            .translate([( x / 2), (y / 1.5)])
+            .scale( x / 2 / Math.PI)
+
+        @path = d3.geo.path().projection(@projection)
+
+    draw: () =>
+        d3.json("static/world-topo-min.json", (error, world) =>
+            tooltip = d3.select("#container").append("div").attr("class", "tooltip hidden");
+            countries = topojson.feature(world, world.objects.countries).features
+
+            @svg = d3.select("#container").append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .call(@zoom)
+                .on("click", @click)
+                .append("g")
+
+            @g = @svg.append("g")
+
+            country = @g.selectAll(".country").data(countries);
+
+            country.enter().insert("path")
+                .attr("class", "country")
+                .attr("d", @path)
+                .attr("id", (d,i) ->  return d.id)
+                .attr("title", (d,i) ->  return d.properties.name)
+                .style("fill", "#6d7988")
+
+            offsetL = document.getElementById('container').offsetLeft + 20;
+            offsetT = document.getElementById('container').offsetTop + 10;
+
+            country.on("mousemove", (d,i) =>
+                mouse = d3.mouse(@svg.node()).map( (d) -> return parseInt(d))
+                tooltip.classed("hidden", false)
+                    .attr("style", "left:" + (mouse[0] + offsetL) + "px;top:" + (mouse[1] + offsetT) + "px")
+                    .html(d.properties.name)
+            ).on("mouseout",  (d,i) ->
+                tooltip.classed("hidden", true)
+            )
+        )
+
+    redraw: () ->
+        x = @container.offsetWidth
+        y = x / 2
+        d3.select('svg').remove()
+        @setup(x, y)
+        @draw(topo)
+
+
+    throttle: () =>
+        window.clearTimeout(throttleTimer)
+        throttleTimer = window.setTimeout(() =>
+            return @redraw()
+            200
+        )
+
+    click: () =>
+      latlon = @projection.invert(d3.mouse(@container))
+      console.log latlon
+
+
+    move: () =>
+        t = d3.event.translate;
+        s = d3.event.scale;
+        zscale = s;
+        h = height / 4;
+
+
+        t[0] = Math.min(
+            (width / height)  * (s - 1),
+            Math.max(width * (1 - s), t[0] )
+        )
+
+        t[1] = Math.min(
+            h * (s - 1) + h * s,
+            Math.max(height  * (1 - s) - h * s, t[1])
+        )
+
+        @zoom.translate(t);
+        @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
+
+        d3.selectAll(".country").style("stroke-width", 1.5 / s)
+
 
 app.controller 'MainCtrl', ['$scope', '$http', ($scope, $http) ->
-    container = document.getElementById('container')
-
-    [$scope.x, $scope.y] = (
-        Math.round(item - item * 10 / 100)for item in screenSize())
-
-    defaultProjection = (element) -> 
-        projection = d3.geo.equirectangular()
-            .center([23, -3])
-            .rotate([4.4, 0])
-            .scale(225)
-            .translate([$scope.x / 2, $scope.y / 2])
-
-        path = d3.geo.path().projection(projection)
-        return {path: path, projection: projection}
-
-    initMap = () ->
-        $scope.dataMap = new Datamap({
-            element: container
-            scome: "world"
-            setProjection: defaultProjection
-        })
-
-    angular.element(document).ready(initMap)
-
+    worldMap = new WorldMap()
 ]
+
+    # projection = d3.geo.equirectangular()
+    #     .center([23, -3])
+    #     .rotate([4.4, 0])
+    #     .scale(225)
+    #     .translate([x / 2, y / 2])
