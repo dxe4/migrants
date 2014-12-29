@@ -3,6 +3,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "migrants.settings")
 import django
 django.setup()
 
+from migrants.data import centers
 from invoke import task
 from openpyxl import load_workbook
 from openpyxl.cell import get_column_letter
@@ -149,6 +150,18 @@ def import_data():
     countries = _db_countries_by_name()
     for category in DataCategory.objects.all():
         import_category(category, countries)
+
+
+@task
+def add_center():
+    for code, latitude, longitute in centers:
+        Country.objects.filter(alpha2=code).update(
+            center_lat=float(latitude), center_long=float(longitute))
+
+    pending = Country.objects.filter(
+        center_lat=0
+    ).values_list("alpha2", flat=True)
+    print(pending)
 
 
 @task

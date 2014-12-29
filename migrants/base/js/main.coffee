@@ -11,6 +11,14 @@ screenSize = () ->
 [width, height] = (Math.round(item - item * 10 / 100)for item in screenSize())
 
 
+lineTransition =  (path) ->
+    path.transition()
+        .duration(5500)
+        .each("end", (d,i) -> return 1)
+        
+        
+
+
 class WorldMap
     constructor: ->
         @zoom = d3.behavior.zoom()
@@ -53,6 +61,31 @@ class WorldMap
 
             offsetL = document.getElementById('container').offsetLeft + 20;
             offsetT = document.getElementById('container').offsetTop + 10;
+            links = []
+            route = {
+              coordinates: [
+                [54.0000, -2.0000],
+                [42.8333, 12.8333]
+              ]
+            }
+            links.push(route)
+
+
+
+            @g.selectAll("line")
+                    .data(links)
+                    .enter()
+                    .append("line")
+                    .attr("x1", (d) =>
+                        @projection([d.coordinates[0][1], d.coordinates[0][0]])[0])
+                    .attr("y1", (d) =>
+                        @projection([d.coordinates[0][1], d.coordinates[0][0]])[1])
+                    .attr("x2", (d) =>
+                        @projection([d.coordinates[1][1], d.coordinates[1][0]])[0])
+                    .attr("y2", (d) =>
+                        @projection([d.coordinates[1][1], d.coordinates[1][0]])[1])
+                    .style("stroke", "yellow")
+            
 
             country.on("mousemove", (d,i) =>
                 mouse = d3.mouse(@svg.node()).map( (d) -> return parseInt(d))

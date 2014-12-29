@@ -19,6 +19,8 @@ class Country(models.Model):
     name = models.CharField(max_length=200)
     order = models.IntegerField(unique=True)
     region = models.CharField(max_length=100)
+    center_lat = models.FloatField(default=0)
+    center_long = models.FloatField(default=0)
 
     def __unicode__(self):
         return u"{} - {}".format(self.name, self.alpha2)
