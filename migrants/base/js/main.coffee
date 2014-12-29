@@ -37,7 +37,7 @@ class WorldMap
         @path = d3.geo.path().projection(@projection)
 
     draw: () =>
-        d3.json("static/world-topo-min.json", (error, world) =>
+        d3.json("static/countries.topo.json", (error, world) =>
             tooltip = d3.select("#container").append("div").attr("class", "tooltip hidden");
             countries = topojson.feature(world, world.objects.countries).features
 
@@ -55,8 +55,8 @@ class WorldMap
             country.enter().insert("path")
                 .attr("class", "country")
                 .attr("d", @path)
-                .attr("id", (d,i) ->  return d.id)
-                .attr("title", (d,i) ->  return d.properties.name)
+                .attr("id", (d,i) ->  return d.properties.ISO_A2)
+                .attr("title", (d,i) ->  return d.properties.NAME)
                 .style("fill", "#6d7988")
 
             offsetL = document.getElementById('container').offsetLeft + 20;
@@ -91,7 +91,7 @@ class WorldMap
                 mouse = d3.mouse(@svg.node()).map( (d) -> return parseInt(d))
                 tooltip.classed("hidden", false)
                     .attr("style", "left:" + (mouse[0] + offsetL) + "px;top:" + (mouse[1] + offsetT) + "px")
-                    .html(d.properties.name)
+                    .html(d.properties.NAME)
             ).on("mouseout",  (d,i) ->
                 tooltip.classed("hidden", true)
             )
