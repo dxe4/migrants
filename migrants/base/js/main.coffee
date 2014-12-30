@@ -1,4 +1,5 @@
-app = angular.module 'migrants.main', []
+api_app = angular.module 'migrants.api', ['ngResource']
+app = angular.module 'migrants.main', ['migrants.api']
 
 screenSize = () ->
     # http://stackoverflow.com/questions/3437786
@@ -133,8 +134,21 @@ class WorldMap
         @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
 
 
+api_app.factory 'Origin', ['$resource', ($resource) ->
+    $resource '/origin/:code'
+]
 
-app.controller 'MainCtrl', ['$scope', '$http', ($scope, $http) ->
+api_app.factory 'Destination', ['$resource', ($resource) ->
+    $resource '/destination/:code'
+]
+
+app.controller 'MainCtrl', ['$scope', '$http', 'Origin', 'Destination', ($scope, $http, Origin, Destination) ->
+
+    $scope.posts = Origin.query({code: 'gb'})
+    $scope.posts.$promise.then (results) ->
+        # Load the photos
+        angular.forEach results, (post) ->
+            console.log(post)
     worldMap = new WorldMap()
 ]
 

@@ -165,7 +165,19 @@ def add_center():
 
 
 @task
+def fix_categories():
+    categories = DataCategory.objects.all()
+    for category in categories:
+        title = category.title
+        title = title.replace(
+            "and by major area, region, country or area of destinatio", "")
+        category.title = title
+        category.save()
+
+
+@task
 def import_all():
     import_countries()
     import_categories()
     import_data()
+    add_center()

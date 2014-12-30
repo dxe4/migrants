@@ -35,18 +35,19 @@ class DestinationMigrantInfoSerializer(serializers.ModelSerializer):
         fields = ('origin', 'category', 'people')
 
 
-class OriginCountrySerializer(serializers.ModelSerializer):
-    origin = OriginMigrantInfoSerializer(many=True, read_only=True)
+# Bad design, keep for now..:
+# class OriginCountrySerializer(serializers.ModelSerializer):
+#     origin = OriginMigrantInfoSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Country
-        fields = ('alpha2', 'area', 'alt_name', 'name', 'region', 'origin')
+#     class Meta:
+#         model = Country
+#         fields = ('alpha2', 'area', 'alt_name', 'name', 'region', 'origin')
 
 
-class DestinationCountrySerializer(serializers.ModelSerializer):
-    destination = DestinationMigrantInfoSerializer(many=True, read_only=True)
+# class DestinationCountrySerializer(serializers.ModelSerializer):
+#     destination = DestinationMigrantInfoSerializer(many=True, read_only=True)
 
-    class Meta:
-        model = Country
-        fields = (
-            'alpha2', 'area', 'alt_name', 'name', 'region', 'destination')
+#     class Meta:
+#         model = Country
+#         fields = (
+#             'alpha2', 'area', 'alt_name', 'name', 'region', 'destination')

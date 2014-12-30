@@ -1,35 +1,35 @@
-from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
 
-from migrants.base.models import Country
+from migrants.base.models import MigrationInfo
 from migrants.base.serializers import (
-    OriginCountrySerializer, DestinationCountrySerializer
+    OriginMigrantInfoSerializer, DestinationMigrantInfoSerializer
 )
 
 
-class BaseCountryView(APIView):
+class BaseCountryView(ListAPIView):
 
-    def get(self, request, alpha2):
-        alpha2 = alpha2.upper()
-        result = get_object_or_404(
-            Country.objects.select_related(self.join_fields),
-            alpha2=alpha2
-        )
-        serializer = self.serializer(result)
-        return Response(serializer.data)
+    def get_queryset(self):
+        alpha2 = self.kwargs['alpha2'].upper()
+        kwargs = {
+            "{}__alpha2".format(self.join_field): alpha2,
+            'people__gte': 1000,
+        }
+        result = MigrationInfo.objects.filter(
+            **kwargs
+        ).order_by('-people')[0:30]
+        return result
 
 
 class OriginView(BaseCountryView):
-    join_fields = 'origin'
-    serializer = OriginCountrySerializer
+    join_field = 'origin'
+    serializer_class = OriginMigrantInfoSerializer
 
 
 class DestinationView(BaseCountryView):
-    join_fields = 'destination'
-    serializer = DestinationCountrySerializer
+    join_field = 'destination'
+    serializer_class = DestinationMigrantInfoSerializer
 
 
 class Index(TemplateView):
