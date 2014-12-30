@@ -7,7 +7,8 @@ class _CountrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Country
-        fields = ('alpha2', 'area', 'alt_name', 'name', 'region')
+        fields = ('alpha2', 'area', 'alt_name', 'name', 'region',
+                  'center_lat', 'center_long')
 
 
 class DataCategorySerializer(serializers.ModelSerializer):
