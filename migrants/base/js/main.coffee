@@ -16,11 +16,13 @@ lineTransition =  (path) ->
         .duration(5500)
         .each("end", (d,i) -> return 1)
         
-        
-
 
 class WorldMap
     constructor: ->
+        @tooltip = d3.select("#container").append("div").attr("class", "tooltip hidden")
+        @offsetL = document.getElementById('container').offsetLeft + 20
+        @offsetT = document.getElementById('container').offsetTop + 10
+
         @zoom = d3.behavior.zoom()
             .scaleExtent([0.72, 10])
             .on("zoom", @move)
@@ -38,14 +40,13 @@ class WorldMap
 
     draw: () =>
         d3.json("static/countries.topo.json", (error, world) =>
-            tooltip = d3.select("#container").append("div").attr("class", "tooltip hidden");
             countries = topojson.feature(world, world.objects.countries).features
 
             @svg = d3.select("#container").append("svg")
                 .attr("width", width)
                 .attr("height", height)
                 .call(@zoom)
-                .on("click", @click)
+                .on("dblclick", @click)
                 .append("g")
 
             @g = @svg.append("g")
@@ -59,43 +60,28 @@ class WorldMap
                 .attr("title", (d,i) ->  return d.properties.NAME)
                 .style("fill", "#6d7988")
 
-            offsetL = document.getElementById('container').offsetLeft + 20;
-            offsetT = document.getElementById('container').offsetTop + 10;
-            links = []
-            route = {
-              coordinates: [
-                [54.0000, -2.0000],
-                [42.8333, 12.8333]
-              ]
-            }
-            links.push(route)
-
-
-
-            @g.selectAll("line")
-                    .data(links)
-                    .enter()
-                    .append("line")
-                    .attr("x1", (d) =>
-                        @projection([d.coordinates[0][1], d.coordinates[0][0]])[0])
-                    .attr("y1", (d) =>
-                        @projection([d.coordinates[0][1], d.coordinates[0][0]])[1])
-                    .attr("x2", (d) =>
-                        @projection([d.coordinates[1][1], d.coordinates[1][0]])[0])
-                    .attr("y2", (d) =>
-                        @projection([d.coordinates[1][1], d.coordinates[1][0]])[1])
-                    .style("stroke", "yellow")
-            
-
-            country.on("mousemove", (d,i) =>
-                mouse = d3.mouse(@svg.node()).map( (d) -> return parseInt(d))
-                tooltip.classed("hidden", false)
-                    .attr("style", "left:" + (mouse[0] + offsetL) + "px;top:" + (mouse[1] + offsetT) + "px")
-                    .html(d.properties.NAME)
-            ).on("mouseout",  (d,i) ->
-                tooltip.classed("hidden", true)
-            )
+            country.on("mousemove", @mousemove)
+            country.on("mouseout",  @mouseout)
         )
+
+    addLines: (links) =>
+        '''
+        Links example
+        [route = { coordinates: [[54.0000, -2.0000], [42.8333, 12.8333]]}]
+        '''
+        @g.selectAll("line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("x1", (d) =>
+                @projection([d.coordinates[0][1], d.coordinates[0][0]])[0])
+            .attr("y1", (d) =>
+                @projection([d.coordinates[0][1], d.coordinates[0][0]])[1])
+            .attr("x2", (d) =>
+                @projection([d.coordinates[1][1], d.coordinates[1][0]])[0])
+            .attr("y2", (d) =>
+                @projection([d.coordinates[1][1], d.coordinates[1][0]])[1])
+            .style("stroke", "yellow")
 
     redraw: () ->
         x = @container.offsetWidth
@@ -112,10 +98,19 @@ class WorldMap
             200
         )
 
-    click: () =>
-      latlon = @projection.invert(d3.mouse(@container))
-      console.log latlon
+    dblclick: () =>
+        latlon = @projection.invert(d3.mouse(@container))
+        console.log latlon
 
+    mousemove: (d, i) =>
+        mouse = d3.mouse(@svg.node()).map( (d) -> return parseInt(d))
+        style = "left:" + (mouse[0] + @offsetL) + "px;top:" + (mouse[1] + @offsetT) + "px"
+        @tooltip.classed("hidden", false)
+            .attr("style", style)
+            .html(d.properties.NAME)
+
+    mouseout: (d, i) =>
+        @tooltip.classed("hidden", true)
 
     move: () =>
         t = d3.event.translate;
