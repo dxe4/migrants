@@ -15,25 +15,23 @@ class DataCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DataCategory
-        fields = ('title', 'year',)
+        fields = ('title', 'year', 'id')
 
 
 class OriginMigrantInfoSerializer(serializers.ModelSerializer):
     destination = _CountrySerializer(many=False, read_only=True)
-    category = DataCategorySerializer(many=False, read_only=True)
 
     class Meta:
         model = MigrationInfo
-        fields = ('destination', 'category', 'people')
+        fields = ('destination', 'people')
 
 
 class DestinationMigrantInfoSerializer(serializers.ModelSerializer):
     origin = _CountrySerializer(many=False, read_only=True)
-    category = DataCategorySerializer(many=False, read_only=True)
 
     class Meta:
         model = MigrationInfo
-        fields = ('origin', 'category', 'people')
+        fields = ('origin', 'people')
 
 
 # Bad design, keep for now..:

@@ -1,10 +1,10 @@
 from django.views.generic.base import TemplateView
 
 from rest_framework.generics import ListAPIView
-
-from migrants.base.models import MigrationInfo
+from migrants.base.models import MigrationInfo, DataCategory
 from migrants.base.serializers import (
-    OriginMigrantInfoSerializer, DestinationMigrantInfoSerializer
+    OriginMigrantInfoSerializer, DestinationMigrantInfoSerializer,
+    DataCategorySerializer
 )
 
 
@@ -12,9 +12,12 @@ class BaseCountryView(ListAPIView):
 
     def get_queryset(self):
         alpha2 = self.kwargs['alpha2'].upper()
+        category_id = self.kwargs['category_id']
+
         kwargs = {
             "{}__alpha2".format(self.join_field): alpha2,
             'people__gte': 1000,
+            'category__id': category_id
         }
         result = MigrationInfo.objects.filter(
             **kwargs
@@ -30,6 +33,13 @@ class OriginView(BaseCountryView):
 class DestinationView(BaseCountryView):
     join_field = 'destination'
     serializer_class = DestinationMigrantInfoSerializer
+
+
+class ListCategoriesView(ListAPIView):
+    serializer_class = DataCategorySerializer
+
+    def get_queryset(self):
+        return DataCategory.objects.all()
 
 
 class Index(TemplateView):
