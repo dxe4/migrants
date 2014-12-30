@@ -1,10 +1,10 @@
 from django.views.generic.base import TemplateView
 
 from rest_framework.generics import ListAPIView
-from migrants.base.models import MigrationInfo, DataCategory
+from migrants.base.models import MigrationInfo, DataCategory, Country
 from migrants.base.serializers import (
     OriginMigrantInfoSerializer, DestinationMigrantInfoSerializer,
-    DataCategorySerializer
+    DataCategorySerializer, CountryCenterSerializer
 )
 
 
@@ -40,6 +40,13 @@ class ListCategoriesView(ListAPIView):
 
     def get_queryset(self):
         return DataCategory.objects.all()
+
+
+class ListCountryCenterView(ListAPIView):
+    serializer_class = CountryCenterSerializer
+
+    def get_queryset(self):
+        return Country.objects.all()
 
 
 class Index(TemplateView):

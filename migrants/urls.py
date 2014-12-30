@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, include, url
 # from rest_framework import routers
 from migrants.base.views import (
-    OriginView, DestinationView, Index, ListCategoriesView
+    OriginView, DestinationView, Index, ListCategoriesView,
+    ListCountryCenterView
 )
 
 # router = routers.DefaultRouter()
@@ -15,6 +16,7 @@ urlpatterns = patterns(
         OriginView.as_view()),
     url(r'^category/(?P<category_id>[0-9]+)/destination/(?P<alpha2>[a-z]{2})$',
         DestinationView.as_view()),
-    url(r'^category/list$', ListCategoriesView.as_view()),
+    url(r'^category/all$', ListCategoriesView.as_view()),
+    url(r'^country/all$', ListCountryCenterView.as_view()),
 )
 urlpatterns = format_suffix_patterns(urlpatterns)
