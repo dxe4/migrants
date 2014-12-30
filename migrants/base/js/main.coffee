@@ -135,21 +135,63 @@ class WorldMap
 
 
 api_app.factory 'Origin', ['$resource', ($resource) ->
-    $resource '/origin/:code'
+    $resource 'category/:category_id/origin/:code'
 ]
 
 api_app.factory 'Destination', ['$resource', ($resource) ->
-    $resource '/destination/:code'
+    $resource 'category/:category_id/destination/:code'
 ]
 
-app.controller 'MainCtrl', ['$scope', '$http', 'Origin', 'Destination', ($scope, $http, Origin, Destination) ->
+api_app.factory 'Categories', ['$resource', ($resource) ->
+    $resource 'category/all'
+]
 
-    $scope.posts = Origin.query({code: 'gb'})
-    $scope.posts.$promise.then (results) ->
-        # Load the photos
-        angular.forEach results, (post) ->
-            console.log(post)
-    worldMap = new WorldMap()
+api_app.factory 'Countries', ['$resource', ($resource) ->
+    $resource 'country/all'
+]
+
+defaultDict = (type) ->
+    dict = {}
+    return {
+        get: (key) ->
+            if (!dict[key])
+                dict[key] = type.constructor()
+            return dict[key]
+        dict: dict
+    }
+
+app.controller 'MainCtrl', 
+    ['$scope', '$http', 'Origin', 'Destination', 'Categories', 'Countries'
+     ($scope, $http, Origin, Destination, Categories, Countries) ->
+        $scope.countries = {}
+        $scope.categories = new Set([])
+        $scope.category_by_year = defaultDict([])
+        $scope.years = new Set([])
+        $scope.current_result = defaultDict([])
+        $scope.is_loading = false
+
+        result = Origin.query({code: 'gb', category_id: 1})
+        result.$promise.then (results) ->
+            angular.forEach results, (result) ->
+                data = result.destination
+                data['people'] = result.people
+                $scope.current_result.get('destination').push(data)
+
+        countries = Countries.query()
+        countries.$promise.then (results) ->
+            angular.forEach results, (result) ->
+                $scope.countries[result.alpha2] = [
+                    result.center_lat, result.center_long
+                ]
+
+        categories = Categories.query()
+        categories.$promise.then (results) ->
+            angular.forEach results, (result) ->
+                $scope.categories.add(result.title)
+                $scope.years.add(result.year)
+                $scope.category_by_year.get(result.year).push(result.title)
+
+        worldMap = new WorldMap()
 ]
 
     # projection = d3.geo.equirectangular()
