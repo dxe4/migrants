@@ -25,7 +25,8 @@ resetScope = ($scope) ->
     $scope.categories = new Set([])
     $scope.category_by_year = defaultDict([])
     $scope.years = new Set([])
-    $scope.current_result = defaultDict([])
+    $scope.destinations = defaultDict(-1)
+    $scope.origins = defaultDict(-1)
     $scope.current_country = null;
     $scope.is_loading = false
 
@@ -54,9 +55,10 @@ lineTransition =  (path) ->
     path.transition()
         .duration(5500)
         .each("end", (d,i) -> return 1)
-        
 
 class WorldMap
+    @COUNTRY_COLOR = "#6d7988"
+
     constructor: ($scope) ->
         @scope = $scope
         @tooltip = d3.select("#container").append("div").attr("class", "tooltip hidden")
@@ -79,15 +81,43 @@ class WorldMap
     load_data: () ->
         '''
         the load_data functions are a hack to work with async calls on load
+        Mostly temporary code until the color maps are fixed.
         '''
-        console.log "loading data"
-        console.log @scope.current_result
+
         links = []
         link_origin = @scope.countries[@scope.current_country]
-        _.each(@scope.current_result.get('destination'), (i) => 
-            destination = @scope.countries[i.alpha2]
+        [min, max] = [Infinity, -Infinity]
+        _.map(@scope.destinations, (value, key) => 
+            destination = @scope.countries[value.alpha2]
+            if destination == undefined
+                return -1
+
             links.push({coordinates: [link_origin, destination]})
+
+            if value.people < min
+                min = value.people
+            if value.people > max
+                max = value.people
         )
+        diff = (max - min) / 10
+        domainValues = []
+        _.map(_.range(1, 11), (i) -> domainValues.push(i * diff))
+        # TODO HACK This is crap fix it
+        clr = d3.scale.threshold()
+            .domain(domainValues)
+            .range(["rgb(127,59,8)", "rgb(179,88,6)", "rgb(224,130,20)",
+                    "rgb(253,184,99)", "rgb(254,224,182)", "rgb(247,247,247)",
+                    "rgb(216,218,235)", "rgb(178,171,210)", "rgb(128,115,172)",
+                    "rgb(84,39,136)", "rgb(45,0,75)"])
+
+        @g.selectAll(".country")
+            .style('fill', (d, i) =>
+                result = @scope.destinations[d.properties.ISO_A2]
+                if result == -1 || !result
+                    return 'not-colored'
+                else
+                    return clr(result.people)
+            )
         @addLines links
 
     _load_data: () ->
@@ -120,7 +150,7 @@ class WorldMap
                 .attr("d", @path)
                 .attr("id", (d,i) ->  return d.properties.ISO_A2)
                 .attr("title", (d,i) ->  return d.properties.NAME)
-                .style("fill", "#6d7988")
+                .style("fill", @COUNTRY_COLOR)
 
             country.on("mousemove", @mousemove)
             country.on("mouseout",  @mouseout)
@@ -209,7 +239,7 @@ app.controller 'MainCtrl',
             angular.forEach results, (result) ->
                 data = result.destination
                 data['people'] = result.people
-                $scope.current_result.get('destination').push(data)
+                $scope.destinations[data.alpha2] = data
             $scope.worldMap.async_load_data()
 
         countries = Countries.query()
