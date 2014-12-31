@@ -99,24 +99,31 @@ class WorldMap
             if value.people > max
                 max = value.people
         )
-        diff = (max - min) / 10
+        # For this, need to figure out in how many different buckets the data is distributed to
+        # if it's 8 in the first bucket and 2 in the last, we need to pick a more intelligent 
+        # domain 
+        diff = (max/900 - min/900)
         domainValues = []
-        _.map(_.range(1, 11), (i) -> domainValues.push(i * diff))
-        # TODO HACK This is crap fix it
-        clr = d3.scale.threshold()
+        _.map(_.range(1, 10), (i) -> domainValues.push(i * diff))
+
+        quantize = d3.scale.quantize()
             .domain(domainValues)
-            .range(["rgb(127,59,8)", "rgb(179,88,6)", "rgb(224,130,20)",
-                    "rgb(253,184,99)", "rgb(254,224,182)", "rgb(247,247,247)",
-                    "rgb(216,218,235)", "rgb(178,171,210)", "rgb(128,115,172)",
-                    "rgb(84,39,136)", "rgb(45,0,75)"])
+            .range(d3.range(9).map((i) -> return "blue-q" + i + "-9" ))
+        # # TODO HACK This is crap fix it
+        # clr = d3.scale.threshold()
+        #     .domain(domainValues)
+        #     .range(["rgb(127,59,8)", "rgb(179,88,6)", "rgb(224,130,20)",
+        #             "rgb(253,184,99)", "rgb(254,224,182)", "rgb(247,247,247)",
+        #             "rgb(216,218,235)", "rgb(178,171,210)", "rgb(128,115,172)",
+        #             "rgb(84,39,136)", "rgb(45,0,75)"])
 
         @g.selectAll(".country")
-            .style('fill', (d, i) =>
+            .attr('class', (d, i) =>
                 result = @scope.destinations[d.properties.ISO_A2]
                 if result == -1 || !result
                     return 'not-colored'
                 else
-                    return clr(result.people)
+                    return quantize(result.people / 900)
             )
         @addLines links
 
