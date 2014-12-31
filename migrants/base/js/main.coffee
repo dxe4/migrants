@@ -1,6 +1,44 @@
 api_app = angular.module 'migrants.api', ['ngResource']
 app = angular.module 'migrants.main', ['migrants.api']
 
+api_app.factory 'Origin', ['$resource', ($resource) ->
+    $resource 'category/:category_id/origin/:code'
+]
+
+api_app.factory 'Destination', ['$resource', ($resource) ->
+    $resource 'category/:category_id/destination/:code'
+]
+
+api_app.factory 'Categories', ['$resource', ($resource) ->
+    $resource 'category/all'
+]
+
+api_app.factory 'Countries', ['$resource', ($resource) ->
+    $resource 'country/all'
+]
+
+resetScope = ($scope) -> 
+    '''
+    Ensure the state is cleaned every time
+    '''
+    $scope.countries = {}
+    $scope.categories = new Set([])
+    $scope.category_by_year = defaultDict([])
+    $scope.years = new Set([])
+    $scope.current_result = defaultDict([])
+    $scope.current_country = null;
+    $scope.is_loading = false
+
+defaultDict = (type) ->
+    dict = {}
+    return {
+        get: (key) ->
+            if (!dict[key])
+                dict[key] = type.constructor()
+            return dict[key]
+        dict: dict
+    }
+
 screenSize = () ->
     # http://stackoverflow.com/questions/3437786
     docElm = document.documentElement
@@ -9,7 +47,7 @@ screenSize = () ->
     y = window.innerHeight|| docElm.clientHeight|| body.clientHeight
     return [x, y]
 
-[width, height] = (Math.round(item - item * 10 / 100)for item in screenSize())
+[width, height] = (Math.round(item - item * 10 / 100) for item in screenSize())
 
 
 lineTransition =  (path) ->
@@ -19,7 +57,8 @@ lineTransition =  (path) ->
         
 
 class WorldMap
-    constructor: ->
+    constructor: ($scope) ->
+        @scope = $scope
         @tooltip = d3.select("#container").append("div").attr("class", "tooltip hidden")
         @offsetL = document.getElementById('container').offsetLeft + 20
         @offsetT = document.getElementById('container').offsetTop + 10
@@ -31,6 +70,28 @@ class WorldMap
         @container = document.getElementById('container')
         @setup width, height
         @draw()
+
+        # async black magic
+        # Need 3 Api calls + a json to be downloaded for the data to be initialized
+        # Then the data is picked from the scope, might be a better way of doing this
+        @async_load_data = _.after(4, @_load_data)
+
+    load_data: () ->
+        '''
+        the load_data functions are a hack to work with async calls on load
+        '''
+        console.log "loading data"
+        console.log @scope.current_result
+        links = []
+        link_origin = @scope.countries[@scope.current_country]
+        _.each(@scope.current_result.get('destination'), (i) => 
+            destination = @scope.countries[i.alpha2]
+            links.push({coordinates: [link_origin, destination]})
+        )
+        @addLines links
+
+    _load_data: () ->
+        @load_data()
 
     setup: (x, y) ->
         @projection = d3.geo.mercator()
@@ -63,6 +124,7 @@ class WorldMap
 
             country.on("mousemove", @mousemove)
             country.on("mouseout",  @mouseout)
+            @async_load_data()
         )
 
     addLines: (links) =>
@@ -70,6 +132,7 @@ class WorldMap
         Links example
         [route = { coordinates: [[54.0000, -2.0000], [42.8333, 12.8333]]}]
         '''
+        c20 = d3.scale.category10()
         @g.selectAll("line")
             .data(links)
             .enter()
@@ -82,7 +145,7 @@ class WorldMap
                 @projection([d.coordinates[1][1], d.coordinates[1][0]])[0])
             .attr("y2", (d) =>
                 @projection([d.coordinates[1][1], d.coordinates[1][0]])[1])
-            .style("stroke", "yellow")
+            .style("stroke", (d, i) => c20(i))
 
     redraw: () ->
         x = @container.offsetWidth
@@ -134,48 +197,20 @@ class WorldMap
         @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
 
 
-api_app.factory 'Origin', ['$resource', ($resource) ->
-    $resource 'category/:category_id/origin/:code'
-]
-
-api_app.factory 'Destination', ['$resource', ($resource) ->
-    $resource 'category/:category_id/destination/:code'
-]
-
-api_app.factory 'Categories', ['$resource', ($resource) ->
-    $resource 'category/all'
-]
-
-api_app.factory 'Countries', ['$resource', ($resource) ->
-    $resource 'country/all'
-]
-
-defaultDict = (type) ->
-    dict = {}
-    return {
-        get: (key) ->
-            if (!dict[key])
-                dict[key] = type.constructor()
-            return dict[key]
-        dict: dict
-    }
-
 app.controller 'MainCtrl', 
     ['$scope', '$http', 'Origin', 'Destination', 'Categories', 'Countries'
      ($scope, $http, Origin, Destination, Categories, Countries) ->
-        $scope.countries = {}
-        $scope.categories = new Set([])
-        $scope.category_by_year = defaultDict([])
-        $scope.years = new Set([])
-        $scope.current_result = defaultDict([])
-        $scope.is_loading = false
+        resetScope($scope)
+        $scope.worldMap = new WorldMap($scope)
 
         result = Origin.query({code: 'gb', category_id: 1})
+        $scope.current_country = 'GB'
         result.$promise.then (results) ->
             angular.forEach results, (result) ->
                 data = result.destination
                 data['people'] = result.people
                 $scope.current_result.get('destination').push(data)
+            $scope.worldMap.async_load_data()
 
         countries = Countries.query()
         countries.$promise.then (results) ->
@@ -183,6 +218,7 @@ app.controller 'MainCtrl',
                 $scope.countries[result.alpha2] = [
                     result.center_lat, result.center_long
                 ]
+            $scope.worldMap.async_load_data()
 
         categories = Categories.query()
         categories.$promise.then (results) ->
@@ -190,8 +226,7 @@ app.controller 'MainCtrl',
                 $scope.categories.add(result.title)
                 $scope.years.add(result.year)
                 $scope.category_by_year.get(result.year).push(result.title)
-
-        worldMap = new WorldMap()
+            $scope.worldMap.async_load_data()
 ]
 
     # projection = d3.geo.equirectangular()

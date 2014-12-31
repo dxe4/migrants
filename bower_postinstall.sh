@@ -9,3 +9,4 @@ cp bower_components/topojson/topojson.js static/lib
 cp bower_components/d3/d3.js static/lib
 cp bower_components/underscore/underscore-min.js static/lib
 cp bower_components/underscore/underscore-min.map static/lib
+
