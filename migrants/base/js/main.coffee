@@ -99,11 +99,12 @@ class WorldMap
             if value.people > max
                 max = value.people
         )
+        # TODO fix me, still need a better solution almost there
+        # Theres a big difference between low and high values
+        # may need to split in 2 by medain and then use mean?
         median = d3.median(people)
         domain = []
         _.map(_.range(0, Math.round(max / median)), (i) -> domain.push(i * median))
-        # domain[Math.round(max / median)] = max
-        console.log domain[Math.round(max / median)]
 
         colorMap = d3.scale.linear()
             .domain(domain)
