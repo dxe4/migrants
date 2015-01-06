@@ -87,45 +87,38 @@ class WorldMap
         links = []
         link_origin = @scope.countries[@scope.current_country]
         [min, max] = [Infinity, -Infinity]
+        people = []
+
         _.map(@scope.destinations, (value, key) => 
             destination = @scope.countries[value.alpha2]
             if destination == undefined
                 return -1
 
             links.push({coordinates: [link_origin, destination]})
-
-            if value.people < min
-                min = value.people
+            people.push(value.people)
             if value.people > max
                 max = value.people
         )
-        # For this, need to figure out in how many different buckets the data is distributed to
-        # if it's 8 in the first bucket and 2 in the last, we need to pick a more intelligent 
-        # domain 
-        diff = (max/900 - min/900)
-        domainValues = []
-        _.map(_.range(1, 10), (i) -> domainValues.push(i * diff))
+        median = d3.median(people)
+        domain = []
+        _.map(_.range(0, max / median ), (i) -> domain.push(i * median))
 
-        quantize = d3.scale.quantize()
-            .domain(domainValues)
-            .range(d3.range(9).map((i) -> return "blue-q" + i + "-9" ))
-        # # TODO HACK This is crap fix it
-        # clr = d3.scale.threshold()
-        #     .domain(domainValues)
-        #     .range(["rgb(127,59,8)", "rgb(179,88,6)", "rgb(224,130,20)",
-        #             "rgb(253,184,99)", "rgb(254,224,182)", "rgb(247,247,247)",
-        #             "rgb(216,218,235)", "rgb(178,171,210)", "rgb(128,115,172)",
-        #             "rgb(84,39,136)", "rgb(45,0,75)"])
+        colorMap = d3.scale.linear()
+            .domain(domain)
+            .range(["#FF0000", "#FF3700", "#FF6600", "#FF8000", "#FFAE00", "#FFD900", "#FFFF00", "#FFFF91", "#FFFF91", "#FFFF91"])
 
         @g.selectAll(".country")
-            .attr('class', (d, i) =>
+            .attr('fill', (d, i) =>
                 result = @scope.destinations[d.properties.ISO_A2]
                 if result == -1 || !result
                     return 'not-colored'
                 else
-                    return quantize(result.people / 900)
+                    val = d3.rgb(colorMap(result.people))
+                    [r, g, b] = [val.r, val.g, val.b]
+                    val = "rgba(#{r},#{g},#{b}, 0.5)" 
+                    return val
             )
-        @addLines links
+        # @addLines links
 
     _load_data: () ->
         @load_data()

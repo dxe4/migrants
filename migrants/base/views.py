@@ -16,12 +16,12 @@ class BaseCountryView(ListAPIView):
 
         kwargs = {
             "{}__alpha2".format(self.join_field): alpha2,
-            'people__gte': 1000,
+            'people__gte': 50,
             'category__id': category_id
         }
         result = MigrationInfo.objects.filter(
             **kwargs
-        ).order_by('-people')[0:30]
+        ).order_by('-people')
         return result
 
 
