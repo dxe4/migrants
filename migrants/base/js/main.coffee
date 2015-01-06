@@ -101,11 +101,14 @@ class WorldMap
         )
         median = d3.median(people)
         domain = []
-        _.map(_.range(0, max / median ), (i) -> domain.push(i * median))
+        _.map(_.range(0, Math.round(max / median)), (i) -> domain.push(i * median))
+        # domain[Math.round(max / median)] = max
+        console.log domain[Math.round(max / median)]
 
         colorMap = d3.scale.linear()
             .domain(domain)
-            .range(["#FF0000", "#FF3700", "#FF6600", "#FF8000", "#FFAE00", "#FFD900", "#FFFF00", "#FFFF91", "#FFFF91", "#FFFF91"])
+            .range(["#FF0000", "#FF3700", "#FF6600", "#FF8000", "#FFAE00",
+                    "#FFD900", "#FFFF00", "#FFFF91", "#FFFFC4", "#FCFCD9", "#FFFFFF"])
 
         @g.selectAll(".country")
             .attr('fill', (d, i) =>
@@ -115,7 +118,7 @@ class WorldMap
                 else
                     val = d3.rgb(colorMap(result.people))
                     [r, g, b] = [val.r, val.g, val.b]
-                    val = "rgba(#{r},#{g},#{b}, 0.5)" 
+                    val = "rgba(#{r},#{g},#{b}, 0.6)" 
                     return val
             )
         # @addLines links
