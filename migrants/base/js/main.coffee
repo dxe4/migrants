@@ -57,7 +57,11 @@ lineTransition =  (path) ->
         .each("end", (d,i) -> return 1)
 
 class WorldMap
-    @COUNTRY_COLOR = "#6d7988"
+    @NULL_COUNTRY_COLOR = "#6d7988"
+    @COUNTRY_COLOR = 'rgb(255, 255, 255)'
+    @COLOR_MAP = ['rgba(255,255,204, 0.6)', 'rgba(255,237,160, 0.6)', 'rgba(254,217,118, 0.6)',
+                  'rgba(254,178,76, 0.6)', 'rgba(253,141,60, 0.6)', 'rgba(252,78,42, 0.6)',
+                  'rgba(227,26,28, 0.6)','rgba(189,0,38, 0.6)','rgba(128,0,38, 0.6)']
 
     constructor: ($scope) ->
         @scope = $scope
@@ -106,15 +110,16 @@ class WorldMap
         colorMap = d3.scale.quantize()
             .domain([min, max])
             # colorbrower_schemes.js
-            .range(['rgba(255,255,204, 0.6)', 'rgba(255,237,160, 0.6)', 'rgba(254,217,118, 0.6)',
-                    'rgba(254,178,76, 0.6)', 'rgba(253,141,60, 0.6)', 'rgba(252,78,42, 0.6)',
-                    'rgba(227,26,28, 0.6)','rgba(189,0,38, 0.6)','rgba(128,0,38, 0.6)'])
+            .range(WorldMap.COLOR_MAP)
 
         @g.selectAll(".country")
             .attr('fill', (d, i) =>
                 result = @scope.destinations[d.properties.ISO_A2]
                 if result == -1 || !result
-                    return 'not-colored'
+                    if d.properties.ISO_A2 == @scope.current_country
+                        return WorldMap.COUNTRY_COLOR
+                    else
+                        return WorldMap.NULL_COUNTRY_COLOR
                 else 
                     # That will cuase (crazy / 3) cpu on zoom
                     # need to add the right values to avoid re-calc
@@ -259,7 +264,14 @@ app.controller 'MainCtrl',
                 $scope.years.add(result.year)
                 $scope.category_by_year.get(result.year).push(result.title)
             $scope.worldMap.async_load_data()
+
 ]
+
+# docFrag = document.createDocumentFragment()
+# table = d3.select(docFrag).append("table").attr("class", "graph-key")
+# thead = table.append("thead")
+# tbody = table.append("tbody")
+
 
     # projection = d3.geo.equirectangular()
     #     .center([23, -3])
