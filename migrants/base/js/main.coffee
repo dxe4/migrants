@@ -99,30 +99,17 @@ class WorldMap
             if value.people > max
                 max = value.people
         )
+        # TODO fix me, still need a better solution almost there
+        # Theres a big difference between low and high values
+        # may need to split in 2 by medain and then use mean?
+        median = d3.median(people)
+        domain = []
+        _.map(_.range(0, Math.round(max / median)), (i) -> domain.push(i * median))
 
-        # TODO clean up this mess
-        median = d3.mean(people)
-        low = people.filter (x) -> x < median
-        high = people.filter (x) -> x > median
-
-        [lowMedian, highMedian] = [d3.median(low), d3.median(high)]
-        [lowDomain, highDomain] = [[], []]
-        [lowMax, highMax] = [d3.max(low), d3.max(high)]
-
-        _.map(_.range(
-            0, Math.round(lowMax / lowMedian)),
-            (i) -> lowDomain.push(i * lowMedian))
-        _.map(_.range(
-            0, Math.round(highMax / highMedian)),
-            (i) -> highDomain.push(i * highMedian))
-
-        lowColorMap = d3.scale.linear()
-            .domain(lowDomain)
-            .range(["#FF0000", "#FF3700", "#FF6600", "#FF8000", "#FFAE00"])
-
-        highColorMap = d3.scale.linear()
-            .domain(highDomain)
-            .range(["#FFD900", "#FFFF00", "#FFFF91", "#FFFFC4", "#FCFCD9", "#FCFCEB"])
+        colorMap = d3.scale.linear()
+            .domain(domain)
+            .range(["#FF0000", "#FF3700", "#FF6600", "#FF8000", "#FFAE00",
+                    "#FFD900", "#FFFF00", "#FFFF91", "#FFFFC4", "#FCFCD9", "#FFFFFF"])
 
         @g.selectAll(".country")
             .attr('fill', (d, i) =>
@@ -130,11 +117,6 @@ class WorldMap
                 if result == -1 || !result
                     return 'not-colored'
                 else
-                    if result.people < median
-                        colorMap = lowColorMap
-                    else
-                        colorMap = highColorMap
-
                     val = d3.rgb(colorMap(result.people))
                     [r, g, b] = [val.r, val.g, val.b]
                     val = "rgba(#{r},#{g},#{b}, 0.6)" 
