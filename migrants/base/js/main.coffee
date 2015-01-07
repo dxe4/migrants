@@ -56,6 +56,38 @@ lineTransition =  (path) ->
         .duration(5500)
         .each("end", (d,i) -> return 1)
 
+makeTable = (tableData) =>
+    columns = ["Country", "People"]
+    table = d3.select("#container").append("table")
+    thead = table.append("thead")
+    tbody = table.append("tbody")
+
+    thead.append("tr")
+        .selectAll("th")
+        .data(columns)
+        .enter()
+        .append("th")
+        .text((column) -> column)
+        .style("color", "white")
+        .style("font-size", "25px")
+
+    rows = tbody.selectAll("tr")
+        .data(tableData)
+        .enter()
+        .append("tr")
+        .style("color", "white")
+        .style("font-size", "20px")
+
+    cells = rows.selectAll("td")
+        .data((row) =>
+            columns.map((column) =>
+                return {column: column, value: row[column]}
+            )
+        )
+        .enter()
+          .append("td")
+          .text((d) => d.value)
+
 class WorldMap
     @NULL_COUNTRY_COLOR = "#6d7988"
     @COUNTRY_COLOR = 'rgb(255, 255, 255)'
@@ -81,6 +113,7 @@ class WorldMap
         # Need 3 Api calls + a json to be downloaded for the data to be initialized
         # Then the data is picked from the scope, might be a better way of doing this
         @async_load_data = _.after(4, @_load_data)
+        makeTable([{"country":"foo", "people":"999"}])
 
     load_data: () ->
         '''
