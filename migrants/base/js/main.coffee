@@ -84,43 +84,40 @@ class WorldMap
         Mostly temporary code until the color maps are fixed.
         '''
 
-        links = []
+        # links = [] This is to be a "visual overload", may need later on.
         link_origin = @scope.countries[@scope.current_country]
-        [min, max] = [Infinity, -Infinity]
         people = []
 
         _.map(@scope.destinations, (value, key) => 
             destination = @scope.countries[value.alpha2]
             if destination == undefined
                 return -1
-
-            links.push({coordinates: [link_origin, destination]})
+            # links.push({coordinates: [link_origin, destination]})
             people.push(value.people)
-            if value.people > max
-                max = value.people
         )
-        # TODO fix me, still need a better solution almost there
-        # Theres a big difference between low and high values
-        # may need to split in 2 by medain and then use mean?
-        median = d3.median(people)
-        domain = []
-        _.map(_.range(0, Math.round(max / median)), (i) -> domain.push(i * median))
 
-        colorMap = d3.scale.linear()
-            .domain(domain)
-            .range(["#FF0000", "#FF3700", "#FF6600", "#FF8000", "#FFAE00",
-                    "#FFD900", "#FFFF00", "#FFFF91", "#FFFFC4", "#FCFCD9", "#FFFFFF"])
+        people = (Math.log(i ** 3) for i in people)
+        median = d3.median(people)
+        [min, max] = [d3.min(people), d3.max(people)]
+
+        domain = []
+        _.map(_.range(0, Math.round(max / median)), (i) -> domain.push(i))
+
+        colorMap = d3.scale.quantize()
+            .domain([min, max])
+            .range(['rgba(255,255,204, 0.6)', 'rgba(255,237,160, 0.6)', 'rgba(254,217,118, 0.6)',
+                    'rgba(254,178,76, 0.6)', 'rgba(253,141,60, 0.6)', 'rgba(252,78,42, 0.6)',
+                    'rgba(227,26,28, 0.6)','rgba(189,0,38, 0.6)','rgba(128,0,38, 0.6)'])
 
         @g.selectAll(".country")
             .attr('fill', (d, i) =>
                 result = @scope.destinations[d.properties.ISO_A2]
                 if result == -1 || !result
                     return 'not-colored'
-                else
-                    val = d3.rgb(colorMap(result.people))
-                    [r, g, b] = [val.r, val.g, val.b]
-                    val = "rgba(#{r},#{g},#{b}, 0.6)" 
-                    return val
+                else 
+                    # That will cuase (crazy / 3) cpu on zoom
+                    # need to add the right values to avoid re-calc
+                    return colorMap(Math.log(result.people ** 3))
             )
         # @addLines links
 
@@ -268,3 +265,8 @@ app.controller 'MainCtrl',
     #     .rotate([4.4, 0])
     #     .scale(225)
     #     .translate([x / 2, y / 2])
+
+
+    # val = d3.rgb()
+    # [r, g, b] = [val.r, val.g, val.b]
+    # val = "rgba(#{r},#{g},#{b}, 0.6)"
