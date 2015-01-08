@@ -57,7 +57,7 @@ lineTransition =  (path) ->
         .each("end", (d,i) -> return 1)
 
 makeTable = (tableData) =>
-    columns = ["Country", "People"]
+    columns = ["country", "people"]
     table = d3.select("#container").append("table")
     thead = table.append("thead")
     tbody = table.append("tbody")
