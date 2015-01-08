@@ -162,6 +162,9 @@ class WorldMap
 
     _load_data: () ->
         @load_data()
+        # Async black magic, after the json is loaded 3 times is enough
+        # Might be the easiest way to solve this
+        @async_load_data = @load_data
 
     setup: (x, y) ->
         @projection = d3.geo.mercator()
@@ -267,36 +270,51 @@ class WorldMap
         @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
 
 
+loadCountry = ($scope, countryCode, categoryId, Query, destinationDict) =>
+    result = Query.query({
+        code: countryCode.toLowerCase(), category_id: categoryId
+    })
+    $scope.current_country = countryCode.toUpperCase()
+
+    result.$promise.then (results) ->
+        angular.forEach results, (result) ->
+            data = result.destination
+            data['people'] = result.people
+            destinationDict[data.alpha2] = data
+
+        $scope.worldMap.async_load_data()
+
+
+loadInitialData = ($scope, Countries, Categories) =>
+    countries = Countries.query()
+
+    countries.$promise.then (results) ->
+        angular.forEach results, (result) ->
+            $scope.countries[result.alpha2] = [
+                result.center_lat, result.center_long
+            ]
+
+        $scope.worldMap.async_load_data()
+
+    categories = Categories.query()
+
+    categories.$promise.then (results) ->
+        angular.forEach results, (result) ->
+            $scope.categories.add(result.title)
+            $scope.years.add(result.year)
+            $scope.category_by_year.get(result.year).push(result.title)
+
+        $scope.worldMap.async_load_data()
+
+
 app.controller 'MainCtrl', 
     ['$scope', '$http', 'Origin', 'Destination', 'Categories', 'Countries'
      ($scope, $http, Origin, Destination, Categories, Countries) ->
         resetScope($scope)
         $scope.worldMap = new WorldMap($scope)
 
-        result = Origin.query({code: 'gb', category_id: 1})
-        $scope.current_country = 'GB'
-        result.$promise.then (results) ->
-            angular.forEach results, (result) ->
-                data = result.destination
-                data['people'] = result.people
-                $scope.destinations[data.alpha2] = data
-            $scope.worldMap.async_load_data()
-
-        countries = Countries.query()
-        countries.$promise.then (results) ->
-            angular.forEach results, (result) ->
-                $scope.countries[result.alpha2] = [
-                    result.center_lat, result.center_long
-                ]
-            $scope.worldMap.async_load_data()
-
-        categories = Categories.query()
-        categories.$promise.then (results) ->
-            angular.forEach results, (result) ->
-                $scope.categories.add(result.title)
-                $scope.years.add(result.year)
-                $scope.category_by_year.get(result.year).push(result.title)
-            $scope.worldMap.async_load_data()
+        loadCountry($scope, "gb", 1, Origin, $scope.destinations)
+        loadInitialData($scope, Countries, Categories)
 
 ]
 
