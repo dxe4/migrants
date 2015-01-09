@@ -48,7 +48,7 @@ screenSize = () ->
     y = window.innerHeight|| docElm.clientHeight|| body.clientHeight
     return [x, y]
 
-[width, height] = (Math.round(item - item * 10 / 100) for item in screenSize())
+[width, height] = screenSize() #(Math.round(item - item * 10 / 100) for item in screenSize())
 
 
 lineTransition =  (path) ->
@@ -58,7 +58,7 @@ lineTransition =  (path) ->
 
 makeTable = (tableData) =>
     columns = ["country", "people"]
-    table = d3.select("#container").append("table")
+    table = d3.select("#table-left").append("table")
     thead = table.append("thead")
     tbody = table.append("tbody")
 
@@ -69,14 +69,14 @@ makeTable = (tableData) =>
         .append("th")
         .text((column) -> column)
         .style("color", "white")
-        .style("font-size", "25px")
+        .style("font-size", "20px")
 
     rows = tbody.selectAll("tr")
         .data(tableData)
         .enter()
         .append("tr")
         .style("color", "white")
-        .style("font-size", "20px")
+        .style("font-size", "15px")
 
     cells = rows.selectAll("td")
         .data((row) =>
@@ -89,6 +89,7 @@ makeTable = (tableData) =>
           .text((d) => d.value)
 
 class WorldMap
+    @TABLE_LENGTH = 10
     @NULL_COUNTRY_COLOR = "#6d7988"
     @COUNTRY_COLOR = 'rgb(255, 255, 255)'
     @COLOR_MAP = ['rgba(255,255,204, 0.6)', 'rgba(255,237,160, 0.6)', 'rgba(254,217,118, 0.6)',
@@ -113,7 +114,6 @@ class WorldMap
         # Need 3 Api calls + a json to be downloaded for the data to be initialized
         # Then the data is picked from the scope, might be a better way of doing this
         @async_load_data = _.after(4, @_load_data)
-        makeTable([{"country":"foo", "people":"999"}])
 
     load_data: () ->
         '''
@@ -124,11 +124,17 @@ class WorldMap
         # links = [] This is to be a "visual overload", may need later on.
         link_origin = @scope.countries[@scope.current_country]
         people = []
+        tableData = []
 
         _.map(@scope.destinations, (value, key) => 
             destination = @scope.countries[value.alpha2]
+
             if destination == undefined
                 return -1
+
+            if tableData.length < WorldMap.TABLE_LENGTH
+                tableData.push({"country": value.alt_name, "people":value.people})
+
             # links.push({coordinates: [link_origin, destination]})
             people.push(value.people)
         )
@@ -158,6 +164,7 @@ class WorldMap
                     # need to add the right values to avoid re-calc
                     return colorMap(Math.log(result.people ** 3))
             )
+        makeTable(tableData)
         # @addLines links
 
     _load_data: () ->
