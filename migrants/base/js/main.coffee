@@ -21,9 +21,6 @@ resetScope = ($scope) ->
     '''
     Ensure the state is cleaned every time
     '''
-    $scope.countries = {}
-    $scope.categories = new Set([])
-    $scope.category_by_year = defaultDict([])
     $scope.years = new Set([])
     $scope.destinations = defaultDict(-1)
     $scope.origins = defaultDict(-1)
@@ -57,6 +54,9 @@ lineTransition =  (path) ->
 
 makeTable = (tableData) =>
     columns = ["country", "people"]
+    current_table = d3.selectAll('#table-left table');
+    current_table = current_table.remove()
+
     table = d3.select("#table-left").append("table")
     thead = table.append("thead")
     tbody = table.append("tbody")
@@ -126,7 +126,9 @@ class WorldMap
         tableData = []
 
         dict_name = @scope.currentMode.dict
+
         current_dict = @scope[dict_name]
+        console.log dict_name, current_dict
 
         _.map(current_dict, (value, key) => 
             destination = @scope.countries[value.alpha2]
@@ -140,6 +142,7 @@ class WorldMap
             # links.push({coordinates: [link_origin, destination]})
             people.push(value.people)
         )
+        console.log people
 
         people = (Math.log(i ** 3) for i in people)
         median = d3.median(people)
@@ -286,6 +289,7 @@ loadCountry = ($scope, countryCode, categoryId) =>
         code: countryCode.toLowerCase(), category_id: categoryId
     })
 
+    console.log $scope.currentMode
     $scope.current_country = countryCode.toUpperCase()
     mode = $scope.currentMode.result
     dict_name = $scope.currentMode.dict
@@ -339,10 +343,16 @@ app.controller 'MainCtrl',
                 result: "destination"
             }
         ]
+
+        $scope.countries = {}
+        $scope.categories = new Set([])
+        $scope.category_by_year = defaultDict([])
+
         $scope.currentMode = $scope.modes[0]
+        $scope.$watch('currentMode', () -> return loadCountry($scope, "gb", 10))
+
         $scope.worldMap = new WorldMap($scope)
 
-        loadCountry($scope, "gb", 1)
         loadInitialData($scope, Countries, Categories)
 
 ]
