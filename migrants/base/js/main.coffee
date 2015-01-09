@@ -48,8 +48,7 @@ screenSize = () ->
     y = window.innerHeight|| docElm.clientHeight|| body.clientHeight
     return [x, y]
 
-[width, height] = screenSize() #(Math.round(item - item * 10 / 100) for item in screenSize())
-
+[width, height] = (Math.round(item * 97 / 100) for item in screenSize())
 
 lineTransition =  (path) ->
     path.transition()
@@ -188,7 +187,8 @@ class WorldMap
                 .attr("width", width)
                 .attr("height", height)
                 .call(@zoom)
-                .on("dblclick", @click)
+                .on("dblclick", @dblclick)
+
                 .append("g")
 
             @g = @svg.append("g")
