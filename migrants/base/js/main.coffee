@@ -125,7 +125,10 @@ class WorldMap
         people = []
         tableData = []
 
-        _.map(@scope.destinations, (value, key) => 
+        dict_name = @scope.currentMode.dict
+        current_dict = @scope[dict_name]
+
+        _.map(current_dict, (value, key) => 
             destination = @scope.countries[value.alpha2]
 
             if destination == undefined
@@ -152,7 +155,7 @@ class WorldMap
 
         @g.selectAll(".country")
             .attr('fill', (d, i) =>
-                result = @scope.destinations[d.properties.ISO_A2]
+                result = current_dict[d.properties.ISO_A2]
                 if result == -1 || !result
                     if d.properties.ISO_A2 == @scope.current_country
                         return WorldMap.COUNTRY_COLOR
@@ -277,17 +280,22 @@ class WorldMap
         @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
 
 
-loadCountry = ($scope, countryCode, categoryId, Query, destinationDict) =>
-    result = Query.query({
+loadCountry = ($scope, countryCode, categoryId) =>
+    resetScope($scope)
+    result = $scope.currentMode.Query.query({
         code: countryCode.toLowerCase(), category_id: categoryId
     })
-    $scope.current_country = countryCode.toUpperCase()
 
-    result.$promise.then (results) ->
-        angular.forEach results, (result) ->
-            data = result.destination
+    $scope.current_country = countryCode.toUpperCase()
+    mode = $scope.currentMode.result
+    dict_name = $scope.currentMode.dict
+    current_dict = $scope[dict_name]
+
+    result.$promise.then (results) =>
+        angular.forEach results, (result) =>
+            data = result[mode]
             data['people'] = result.people
-            destinationDict[data.alpha2] = data
+            current_dict[data.alpha2] = data
 
         $scope.worldMap.async_load_data()
 
@@ -317,10 +325,24 @@ loadInitialData = ($scope, Countries, Categories) =>
 app.controller 'MainCtrl', 
     ['$scope', '$http', 'Origin', 'Destination', 'Categories', 'Countries'
      ($scope, $http, Origin, Destination, Categories, Countries) ->
-        resetScope($scope)
+        $scope.modes = [
+            {
+                name: "Destination",
+                Query: Destination,
+                dict: "origins",
+                result: "origin"
+            },
+            {
+                name: "Origin",
+                Query: Origin,
+                dict: "destinations",
+                result: "destination"
+            }
+        ]
+        $scope.currentMode = $scope.modes[0]
         $scope.worldMap = new WorldMap($scope)
 
-        loadCountry($scope, "gb", 1, Origin, $scope.destinations)
+        loadCountry($scope, "gb", 1)
         loadInitialData($scope, Countries, Categories)
 
 ]

@@ -46,6 +46,10 @@
             {% block content %}
             {% verbatim %}
 
+                 <select ng-model="currentMode" ng-options="mode.name for mode in modes">
+
+                 </select>
+
                 <div id ="table-left" style="background-color: rgba(33, 39, 46, 0.3)">
               
                 </div>
