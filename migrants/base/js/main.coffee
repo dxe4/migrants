@@ -17,6 +17,9 @@ api_app.factory 'Countries', ['$resource', ($resource) ->
     $resource 'country/all'
 ]
 
+startsWith = (strA, strB) ->
+    strA.substring(0, strB.length) == strB
+
 resetScope = ($scope) -> 
     '''
     Ensure the state is cleaned every time
@@ -47,9 +50,13 @@ screenSize = () ->
 [width, height] = (Math.round(item * 97 / 100) for item in screenSize())
 
 
-loadCountry = ($scope, categoryId) =>
+loadCountry = ($scope) =>
+    if $scope.currentCategory == null
+        return
+
     resetScope($scope)
     countryCode = $scope.country_code
+    categoryId = $scope.currentCategory.id
 
     result = $scope.currentMode.Query.query({
         code: countryCode.toLowerCase(), category_id: categoryId
@@ -68,6 +75,15 @@ loadCountry = ($scope, categoryId) =>
         $scope.worldMap.async_load_data()
 
 
+categoryType = (title) =>
+    # js madness
+    result = ""
+    angular.forEach ["Female", "Male", "Total"], (type) =>
+        if startsWith(title, type)
+            result = type
+    return result
+
+
 loadInitialData = ($scope, Countries, Categories) =>
     countries = Countries.query()
 
@@ -82,9 +98,16 @@ loadInitialData = ($scope, Countries, Categories) =>
 
     categories.$promise.then (result) ->
         angular.forEach result, (row) ->
-            $scope.categories.add(row.title)
-            $scope.years.add(row.year)
-            $scope.category_by_year.get(row.year).push(row.title)
+            category = {
+                title: categoryType(row.title),
+                year:row.year,
+                id: row.id,
+                displayName: "#{row.title} - #{row.year}"
+            }
+
+            $scope.categories.push category
+            if category.id == $scope.currentCategory.id
+                $scope.currentCategory = category
 
         $scope.worldMap.async_load_data()
 
@@ -133,6 +156,7 @@ class WorldMap
     @TABLE_LENGTH = 10
     @NULL_COUNTRY_COLOR = "#6d7988"
     @COUNTRY_COLOR = 'rgb(255, 255, 255)'
+    # colorbrower_schemes.js
     @COLOR_MAP = ['rgba(255,255,204, 0.6)', 'rgba(255,237,160, 0.6)', 'rgba(254,217,118, 0.6)',
                   'rgba(254,178,76, 0.6)', 'rgba(253,141,60, 0.6)', 'rgba(252,78,42, 0.6)',
                   'rgba(227,26,28, 0.6)','rgba(189,0,38, 0.6)','rgba(128,0,38, 0.6)']
@@ -171,19 +195,31 @@ class WorldMap
 
         current_dict = @scope[dict_name]
 
-        _.map(current_dict, (value, key) => 
-            destination = @scope.countries[value.alpha2]
+        if Object.keys(current_dict).length == 2
+            return
 
-            if destination == undefined
+        angular.forEach current_dict, (value, key) =>
+            country = @scope.countries[value.alpha2]
+
+            if country == undefined
                 return -1
 
             if tableData.length < WorldMap.TABLE_LENGTH
-                tableData.push({"country": value.alt_name, "people":value.people})
+                item = {
+                    "country": value.alt_name.slice(0, 25),
+                    "people": value.people
+                }
+                tableData.push item
 
             # links.push({coordinates: [link_origin, destination]})
             people.push(value.people)
-        )
 
+        @_load_people(people, current_dict, tableData)
+
+        
+        # @addLines links
+
+    _load_people: (people, current_dict, tableData) =>
         people = (Math.log(i ** 3) for i in people)
         median = d3.median(people)
         [min, max] = [d3.min(people), d3.max(people)]
@@ -193,7 +229,6 @@ class WorldMap
 
         colorMap = d3.scale.quantize()
             .domain([min, max])
-            # colorbrower_schemes.js
             .range(WorldMap.COLOR_MAP)
 
         @g.selectAll(".country")
@@ -210,7 +245,6 @@ class WorldMap
                     return colorMap(Math.log(result.people ** 3))
             )
         makeTable(tableData)
-        # @addLines links
 
     _load_data: () ->
         @load_data()
@@ -294,7 +328,6 @@ class WorldMap
 
     dblclick: () =>
         latlon = @projection.invert(d3.mouse(@container))
-        console.log latlon
 
     mousemove: (d, i) =>
         mouse = d3.mouse(@svg.node()).map( (d) -> return parseInt(d))
@@ -347,17 +380,32 @@ app.controller 'MainCtrl',
 
         $scope.countries = {}
         $scope.countries_flat = []
-        $scope.categories = new Set([])
+        $scope.categories = []
         $scope.category_by_year = defaultDict([])
         $scope.country_code = "gb"
 
+        title = "Total migrant stock at mid-year by origin "
+        year = 2013
+        $scope.currentCategory = {
+            id: 10,
+            title: title,
+            year: year,
+            displayName: "#{title} - #{year}",
+            temp: true
+        }
+
+        loadInitialData($scope, Countries, Categories)
+
         $scope.currentMode = $scope.modes[0]
 
-        $scope.$watch('currentMode', () -> return loadCountry($scope, 10))
+        $scope.$watch('currentMode', () -> return loadCountry($scope))
+        $scope.$watch('currentCategory', (a, b) -> 
+            if a.temp == true
+                return
+            return loadCountry($scope))
 
         $scope.worldMap = new WorldMap($scope)
 
-        loadInitialData($scope, Countries, Categories)
 
 ]
 
