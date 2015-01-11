@@ -133,14 +133,14 @@ makeTable = (tableData) =>
         .append("th")
         .text((column) -> column)
         .style("color", "white")
-        .style("font-size", "20px")
+        .style("font-size", "19px")
 
     rows = tbody.selectAll("tr")
         .data(tableData)
         .enter()
         .append("tr")
         .style("color", "#4071F7")
-        .style("font-size", "17px")
+        .style("font-size", "16px")
 
     cells = rows.selectAll("td")
         .data((row) =>

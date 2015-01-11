@@ -53,12 +53,13 @@
         #top {
             margin-left: auto;
             margin-right: auto;
-            width: 50%;
+            width: 70%;
         }
         select {
-            overflow: hidden;
-            background: url(new_arrow.png) no-repeat right #ddd;
             border: 1px solid #ccc;
+        }
+        #source-code{
+          font-size: 13px;
         }
     </style>
     <body ng-app="{% block ng_app %}migrants.main{% endblock %}">
@@ -67,6 +68,7 @@
             {% verbatim %}
 
                 <div id="top" style="height: 25px;">
+
                   <select ng-model="currentMode" ng-options="mode.name for mode in modes"
                      style="width: auto; float:left;">
                   </select>
@@ -76,6 +78,9 @@
                   </select>
                   <p style="color: rgb(255,255,255);">
                     Click on a country to see the details
+                    <a id="source-code" href="https://github.com/papaloizouc/migrants">
+                      &nbsp;&nbsp; Source Code
+                    </a>
                   </p>
                 </div>
 
