@@ -4,7 +4,7 @@ module.exports = (grunt) ->
         coffee:
             files:
                 src: ['../migrants/**/*.coffee']
-                dest: '../static/js/script.js'
+                dest: '../migrants/base/js/script.js'
     )
     
     grunt.loadNpmTasks('grunt-contrib-coffee')

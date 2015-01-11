@@ -59,4 +59,6 @@ venv/
 migrants/static
 static/
 bower_components
+**/js/*.js
+**/js/*.js.map
 

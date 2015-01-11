@@ -10,3 +10,6 @@ cp bower_components/d3/d3.js static/lib
 cp bower_components/underscore/underscore-min.js static/lib
 cp bower_components/underscore/underscore-min.map static/lib
 
+cp bower_components/angular-resource/angular-resource.min.js migrants/base/js/
+cp bower_components/angular-resource/angular-resource.min.js.map migrants/base/js
+

@@ -260,7 +260,9 @@ class WorldMap
         @path = d3.geo.path().projection(@projection)
 
     draw: () =>
-        d3.json("static/countries.topo.json", (error, world) =>
+        b = document.querySelector("body")
+        console.log b.dataset.topojson
+        d3.json(b.dataset.topojson, (error, world) =>
             countries = topojson.feature(world, world.objects.countries).features
 
             @svg = d3.select("#container").append("svg")
