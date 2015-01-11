@@ -47,7 +47,7 @@ screenSize = () ->
     y = window.innerHeight|| docElm.clientHeight|| body.clientHeight
     return [x, y]
 
-[width, height] = (Math.round(item * 97 / 100) for item in screenSize())
+[width, height] = (Math.round(item * 93 / 100) for item in screenSize())
 
 
 loadCountry = ($scope) =>
@@ -139,8 +139,8 @@ makeTable = (tableData) =>
         .data(tableData)
         .enter()
         .append("tr")
-        .style("color", "white")
-        .style("font-size", "15px")
+        .style("color", "#4071F7")
+        .style("font-size", "17px")
 
     cells = rows.selectAll("td")
         .data((row) =>
@@ -206,7 +206,7 @@ class WorldMap
 
             if tableData.length < WorldMap.TABLE_LENGTH
                 item = {
-                    "country": value.alt_name.slice(0, 25),
+                    "country": value.alt_name.slice(0, 18),
                     "people": value.people
                 }
                 tableData.push item

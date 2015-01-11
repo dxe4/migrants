@@ -39,6 +39,26 @@
         }
         #table-left {
               position: absolute; z-index: 10;
+              font-weight: bold; 
+        }
+        select {
+            font-size:16px;
+            margin-right: 15px;
+        }
+        td, th {
+            padding: 5px 10px;
+            text-align: left;
+
+        }
+        #top {
+            margin-left: auto;
+            margin-right: auto;
+            width: 50%;
+        }
+        select {
+            overflow: hidden;
+            background: url(new_arrow.png) no-repeat right #ddd;
+            border: 1px solid #ccc;
         }
     </style>
     <body ng-app="{% block ng_app %}migrants.main{% endblock %}">
@@ -46,15 +66,20 @@
             {% block content %}
             {% verbatim %}
 
-                <select ng-model="currentMode" ng-options="mode.name for mode in modes"
-                   style="width: auto;">
-                </select>
+                <div id="top" style="height: 25px;">
+                  <select ng-model="currentMode" ng-options="mode.name for mode in modes"
+                     style="width: auto; float:left;">
+                  </select>
 
-                <select ng-model="currentCategory" ng-options="category.displayName for category in categories"
-                   style="width: auto;">
-                </select>
+                  <select ng-model="currentCategory" ng-options="category.displayName for category in categories"
+                     style="width: auto; float:left;">
+                  </select>
+                  <p style="color: rgb(255,255,255);">
+                    Click on a country to see the details
+                  </p>
+                </div>
 
-                <div id ="table-left" style="background-color: rgba(33, 39, 46, 0.3)">
+                <div id ="table-left" style="background-color: rgba(33, 39, 46, 0.9); color: #8E6E96">
                 </div>
         
                 <div id='container' style="position: relative; margin: 0; width: 100%; height: 100%; display: block;">
