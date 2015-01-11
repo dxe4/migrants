@@ -1,6 +1,10 @@
 Django==1.7.1
 argparse==1.2.1
+boto==2.35.1
+django-appconf==0.6
 django-coffeescript==0.7.2
+django-compressor==1.4
+django-storages-redux==1.2.1
 djangorestframework==3.0.2
 ecdsa==0.11
 gunicorn==19.1.1
@@ -12,3 +16,4 @@ paramiko==1.15.2
 psycopg2==2.5.4
 pycountry==1.10
 pycrypto==2.6.1
+six==1.8.0
