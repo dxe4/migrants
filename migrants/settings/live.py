@@ -4,7 +4,10 @@ SECRET_KEY = os.getenv("SECRET_KEY", None)
 if SECRET_KEY is None:
     raise Exception("Ooops you missed the secret key")
 
-DEBUG = False
+DEBUG = True
+ALLOWED_HOSTS = [
+    'migrants.python.coffee'
+]
 
 AWS_HEADERS = {  # see http://developer.yahoo.com/performance/rules.html#expires
     'Expires': 'Thu, 31 Dec 2099 20:00:00 GMT',
