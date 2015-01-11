@@ -52,7 +52,6 @@ docs/_build/
 
 # PyBuilder
 target/
-*.xlsx
 *.env
 *.xls
 venv/
