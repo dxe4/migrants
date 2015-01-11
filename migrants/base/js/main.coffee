@@ -24,7 +24,6 @@ resetScope = ($scope) ->
     $scope.years = new Set([])
     $scope.destinations = defaultDict(-1)
     $scope.origins = defaultDict(-1)
-    $scope.current_country = null;
     $scope.is_loading = false
 
 defaultDict = (type) ->
@@ -46,6 +45,49 @@ screenSize = () ->
     return [x, y]
 
 [width, height] = (Math.round(item * 97 / 100) for item in screenSize())
+
+
+loadCountry = ($scope, categoryId) =>
+    resetScope($scope)
+    countryCode = $scope.country_code
+
+    result = $scope.currentMode.Query.query({
+        code: countryCode.toLowerCase(), category_id: categoryId
+    })
+
+    mode = $scope.currentMode.result
+    dict_name = $scope.currentMode.dict
+    current_dict = $scope[dict_name]
+
+    result.$promise.then (results) =>
+        angular.forEach results, (result) =>
+            data = result[mode]
+            data['people'] = result.people
+            current_dict[data.alpha2] = data
+
+        $scope.worldMap.async_load_data()
+
+
+loadInitialData = ($scope, Countries, Categories) =>
+    countries = Countries.query()
+
+    countries.$promise.then (result) ->
+        $scope.countries_flat = result
+        angular.forEach result, (row) ->
+            $scope.countries[row.alpha2] = row
+
+        $scope.worldMap.async_load_data()
+
+    categories = Categories.query()
+
+    categories.$promise.then (result) ->
+        angular.forEach result, (row) ->
+            $scope.categories.add(row.title)
+            $scope.years.add(row.year)
+            $scope.category_by_year.get(row.year).push(row.title)
+
+        $scope.worldMap.async_load_data()
+
 
 lineTransition =  (path) ->
     path.transition()
@@ -121,14 +163,13 @@ class WorldMap
         '''
 
         # links = [] This is to be a "visual overload", may need later on.
-        link_origin = @scope.countries[@scope.current_country]
+        link_origin = @scope.countries[@scope.country_code]
         people = []
         tableData = []
 
         dict_name = @scope.currentMode.dict
 
         current_dict = @scope[dict_name]
-        console.log dict_name, current_dict
 
         _.map(current_dict, (value, key) => 
             destination = @scope.countries[value.alpha2]
@@ -142,7 +183,6 @@ class WorldMap
             # links.push({coordinates: [link_origin, destination]})
             people.push(value.people)
         )
-        console.log people
 
         people = (Math.log(i ** 3) for i in people)
         median = d3.median(people)
@@ -160,7 +200,7 @@ class WorldMap
             .attr('fill', (d, i) =>
                 result = current_dict[d.properties.ISO_A2]
                 if result == -1 || !result
-                    if d.properties.ISO_A2 == @scope.current_country
+                    if d.properties.ISO_A2 == @scope.country_code.toUpperCase()
                         return WorldMap.COUNTRY_COLOR
                     else
                         return WorldMap.NULL_COUNTRY_COLOR
@@ -194,7 +234,6 @@ class WorldMap
                 .attr("height", height)
                 .call(@zoom)
                 .on("dblclick", @dblclick)
-
                 .append("g")
 
             @g = @svg.append("g")
@@ -207,6 +246,7 @@ class WorldMap
                 .attr("id", (d,i) ->  return d.properties.ISO_A2)
                 .attr("title", (d,i) ->  return d.properties.NAME)
                 .style("fill", @COUNTRY_COLOR)
+                .on("click", @click)
 
             country.on("mousemove", @mousemove)
             country.on("mouseout",  @mouseout)
@@ -248,6 +288,10 @@ class WorldMap
             200
         )
 
+    click: (d) =>
+        @scope.country_code = d.properties.ISO_A2.toLowerCase()
+        loadCountry(@scope, 10)
+
     dblclick: () =>
         latlon = @projection.invert(d3.mouse(@container))
         console.log latlon
@@ -283,61 +327,18 @@ class WorldMap
         @g.attr("transform", "translate(" + t + ")scale(" + s + ")")
 
 
-loadCountry = ($scope, countryCode, categoryId) =>
-    resetScope($scope)
-    result = $scope.currentMode.Query.query({
-        code: countryCode.toLowerCase(), category_id: categoryId
-    })
-
-    console.log $scope.currentMode
-    $scope.current_country = countryCode.toUpperCase()
-    mode = $scope.currentMode.result
-    dict_name = $scope.currentMode.dict
-    current_dict = $scope[dict_name]
-
-    result.$promise.then (results) =>
-        angular.forEach results, (result) =>
-            data = result[mode]
-            data['people'] = result.people
-            current_dict[data.alpha2] = data
-
-        $scope.worldMap.async_load_data()
-
-
-loadInitialData = ($scope, Countries, Categories) =>
-    countries = Countries.query()
-
-    countries.$promise.then (results) ->
-        angular.forEach results, (result) ->
-            $scope.countries[result.alpha2] = [
-                result.center_lat, result.center_long
-            ]
-
-        $scope.worldMap.async_load_data()
-
-    categories = Categories.query()
-
-    categories.$promise.then (results) ->
-        angular.forEach results, (result) ->
-            $scope.categories.add(result.title)
-            $scope.years.add(result.year)
-            $scope.category_by_year.get(result.year).push(result.title)
-
-        $scope.worldMap.async_load_data()
-
-
 app.controller 'MainCtrl', 
     ['$scope', '$http', 'Origin', 'Destination', 'Categories', 'Countries'
      ($scope, $http, Origin, Destination, Categories, Countries) ->
         $scope.modes = [
             {
-                name: "Destination",
+                name: "Incoming",
                 Query: Destination,
                 dict: "origins",
                 result: "origin"
             },
             {
-                name: "Origin",
+                name: "Outgoing",
                 Query: Origin,
                 dict: "destinations",
                 result: "destination"
@@ -345,11 +346,14 @@ app.controller 'MainCtrl',
         ]
 
         $scope.countries = {}
+        $scope.countries_flat = []
         $scope.categories = new Set([])
         $scope.category_by_year = defaultDict([])
+        $scope.country_code = "gb"
 
         $scope.currentMode = $scope.modes[0]
-        $scope.$watch('currentMode', () -> return loadCountry($scope, "gb", 10))
+
+        $scope.$watch('currentMode', () -> return loadCountry($scope, 10))
 
         $scope.worldMap = new WorldMap($scope)
 
