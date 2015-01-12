@@ -2,7 +2,7 @@ migrants
 ========
 
 Hosted here:
-http://python.coffee/
+http://migrants.python.coffee/
 
 
 The data used is provided by un and can be found 
